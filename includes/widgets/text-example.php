@@ -8,11 +8,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Widget_Text_Example extends Widget_Base {
 
 	public function get_name() {
-		return 'text-example-widget';
+		return 'text-example';
 	}
 
 	public function get_title() {
-		return esc_html__( 'Text Widget', 'elementor-text-example-widget' );
+		return esc_html__( 'Text Widget', 'elementor-text-example' );
 	}
 
 	public function get_icon() {
@@ -46,14 +46,14 @@ class Widget_Text_Example extends Widget_Base {
 		$this->start_controls_section(
 			'section_image',
 			[
-				'label' => esc_html__( 'Image Box', 'elementor-text-example-widget' ),
+				'label' => esc_html__( 'Image Box', 'elementor-text-example' ),
 			]
 		);
 
 		$this->add_control(
 			'image',
 			[
-				'label' => esc_html__( 'Choose Image', 'elementor-text-example-widget' ),
+				'label' => esc_html__( 'Choose Image', 'elementor-text-example' ),
 				'type' => Controls_Manager::MEDIA,
 				'dynamic' => [
 					'active' => true,
@@ -80,7 +80,7 @@ class Widget_Text_Example extends Widget_Base {
 		$this->start_controls_section(
 			'section_content',
 			[
-				'label' => esc_html__( 'Content', 'elementor-text-example-widget' ),
+				'label' => esc_html__( 'Content', 'elementor-text-example' ),
 				'tab' => Controls_Manager::TAB_CONTENT,
 			]
 		);
@@ -88,9 +88,29 @@ class Widget_Text_Example extends Widget_Base {
 		$this->add_control(
 			'title',
 			[
-				'label' => esc_html__( 'Title', 'elementor-text-example-widget' ),
+				'label' => esc_html__( 'Title', 'elementor-text-example' ),
 				'type' => Controls_Manager::TEXT,
-				'placeholder' => esc_html__( 'Enter your title', 'elementor-text-example-widget' ),
+				'placeholder' => esc_html__( 'Enter your title', 'elementor-text-example' ),
+			]
+		);
+
+        $this->add_control(
+			'title_size',
+			[
+				'label' => esc_html__( 'Title HTML Tag', 'elementor-text-example' ),
+				'type' => Controls_Manager::SELECT,
+				'options' => [
+					'h1' => 'H1',
+					'h2' => 'H2',
+					'h3' => 'H3',
+					'h4' => 'H4',
+					'h5' => 'H5',
+					'h6' => 'H6',
+					'div' => 'div',
+					'span' => 'span',
+					'p' => 'p',
+				],
+				'default' => 'h3',
 			]
 		);
 
@@ -99,7 +119,7 @@ class Widget_Text_Example extends Widget_Base {
         $this->start_controls_section(
 			'section_style',
 			[
-				'label' => esc_html__( 'Style', 'elementor-text-example-widget' ),
+				'label' => esc_html__( 'Style', 'elementor-text-example' ),
 				'tab' => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -123,34 +143,95 @@ class Widget_Text_Example extends Widget_Base {
 	protected function render() {
 		$settings = $this->get_settings_for_display();
 
-		if ( empty( $settings['title'] ) ) {
+        $has_image = ! empty( $settings['image']['url'] );
+        $has_content = ! empty( $settings['title'] );
+
+		if ( ! $has_image && ! $has_content ) {
 			return;
 		}
-		?>
-		<h3>
-			<?php echo $settings['title']; ?>
-		</h3>
-		<?php
 
-		// Get image url
-		echo '<img src="' . esc_url( $settings['image']['url'] ) . '" alt="">';
+        $html = '<div class="elementor-text-example-wrapper">';
 
-		// Get image by id
-		echo wp_get_attachment_image( $settings['image']['id'], 'thumbnail' );
+        if ( $has_image ) {
+
+			$image_html = wp_kses_post( Group_Control_Image_Size::get_attachment_image_html( $settings, 'thumbnail', 'image' ) );
+
+			if ( ! empty( $settings['link']['url'] ) ) {
+				$image_html = '<a ' . $this->get_render_attribute_string( 'link' ) . ' tabindex="-1">' . $image_html . '</a>';
+			}
+
+			$html .= '<figure class="elementor-text-example-img">' . $image_html . '</figure>';
+		}
+
+        if ( $has_content ) {
+			$html .= '<div class="elementor-text-example-content">';
+
+			if ( ! Utils::is_empty( $settings['title'] ) ) {
+				$this->add_render_attribute( 'title', 'class', 'elementor-text-example-title' );
+
+				$this->add_inline_editing_attributes( 'title', 'none' );
+
+				$title_html = $settings['title'];
+
+				$html .= sprintf( '<%1$s %2$s>%3$s</%1$s>', Utils::validate_html_tag( $settings['title_size'] ), $this->get_render_attribute_string( 'title' ), $title_html );
+			}
+
+			$html .= '</div>';
+
+            Utils::print_unescaped_internal_string( $html );
+		}
 	}
 
 
 	protected function content_template() {
 		?>
-		<#
-		if ( '' === settings.title ) {
+        <#
+		var hasImage = !! settings.image.url;
+		var hasContent = !! settings.title_text;
+
+		if ( ! hasImage && ! hasContent ) {
 			return;
 		}
+
+		var html = '<div class="elementor-text-example-wrapper">';
+
+		if ( hasImage ) {
+			var image = {
+				id: settings.image.id,
+				url: settings.image.url,
+				size: settings.thumbnail_size,
+				dimension: settings.thumbnail_custom_dimension,
+				model: view.getEditModel()
+			};
+
+			var image_url = elementor.imagesManager.getImageUrl( image );
+
+			var imageHtml = '<img src="' + _.escape( image_url ) + '" class="elementor-animation-' + settings.hover_animation + '" />';
+
+			html += '<figure class="elementor-text-example-img">' + imageHtml + '</figure>';
+		}
+
+		if ( hasContent ) {
+			html += '<div class="elementor-text-example-content">';
+
+			if ( settings.title_text ) {
+				var title_html = settings.title_text,
+					titleSizeTag = elementor.helpers.validateHTMLTag( settings.title_size );
+
+				view.addRenderAttribute( 'title_text', 'class', 'elementor-image-box-title' );
+
+				view.addInlineEditingAttributes( 'title_text', 'none' );
+
+				html += '<' + titleSizeTag  + ' ' + view.getRenderAttributeString( 'title_text' ) + '>' + title_html + '</' + titleSizeTag  + '>';
+			}
+
+			html += '</div>';
+		}
+
+		html += '</div>';
+
+		print( html );
 		#>
-		<h3>
-			{{{ settings.title }}}
-		</h3>
-		<img src="{{{ settings.image.url }}}">
 		<?php
 	}
 }
