@@ -41,8 +41,6 @@ class Widget_Text_Example extends Widget_Base {
 
 	protected function register_controls() {
 
-
-
 		$this->start_controls_section(
 			'section_image',
 			[
@@ -86,7 +84,7 @@ class Widget_Text_Example extends Widget_Base {
 		);
 
 		$this->add_control(
-			'title',
+			'title_text',
 			[
 				'label' => esc_html__( 'Title', 'elementor-text-example' ),
 				'type' => Controls_Manager::TEXT,
@@ -144,7 +142,7 @@ class Widget_Text_Example extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
         $has_image = ! empty( $settings['image']['url'] );
-        $has_content = ! empty( $settings['title'] );
+        $has_content = ! empty( $settings['title_text'] );
 
 		if ( ! $has_image && ! $has_content ) {
 			return;
@@ -166,20 +164,23 @@ class Widget_Text_Example extends Widget_Base {
         if ( $has_content ) {
 			$html .= '<div class="elementor-text-example-content">';
 
-			if ( ! Utils::is_empty( $settings['title'] ) ) {
-				$this->add_render_attribute( 'title', 'class', 'elementor-text-example-title' );
+			if ( ! Utils::is_empty( $settings['title_text'] ) ) {
+				$this->add_render_attribute( 'title_text', 'class', 'elementor-text-example-title' );
 
-				$this->add_inline_editing_attributes( 'title', 'none' );
+				$this->add_inline_editing_attributes( 'title_text', 'none' );
 
-				$title_html = $settings['title'];
+				$title_html = $settings['title_text'];
 
-				$html .= sprintf( '<%1$s %2$s>%3$s</%1$s>', Utils::validate_html_tag( $settings['title_size'] ), $this->get_render_attribute_string( 'title' ), $title_html );
+				$html .= sprintf( '<%1$s %2$s>%3$s</%1$s>', Utils::validate_html_tag( $settings['title_size'] ), $this->get_render_attribute_string( 'title_text' ), $title_html );
 			}
 
-			$html .= '</div>';
+            $html .= '</div>';
 
-            Utils::print_unescaped_internal_string( $html );
-		}
+        }
+
+        $html .= '</div>';
+
+        Utils::print_unescaped_internal_string( $html );
 	}
 
 
