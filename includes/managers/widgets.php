@@ -98,6 +98,7 @@ class Widgets_Manager {
 			'read-more',
 			'rating',
 			'share-buttons',
+			'text-example'
 		];
 
 		$this->_widget_types = [];
