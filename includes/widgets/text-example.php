@@ -1,18 +1,23 @@
 <?php
 namespace Elementor;
 
+use Elementor\Includes\Widgets\Traits\Button_Trait;
+
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 class Widget_Text_Example extends Widget_Base {
 
+	use Button_Trait;
+
 	public function get_name() {
 		return 'text-example';
 	}
 
 	public function get_title() {
-		return esc_html__( 'Text Widget', 'elementor-text-example' );
+		return esc_html__( 'Text Widget', 'elementor' );
 	}
 
 	public function get_icon() {
@@ -44,14 +49,14 @@ class Widget_Text_Example extends Widget_Base {
 		$this->start_controls_section(
 			'section_image',
 			[
-				'label' => esc_html__( 'Image Box', 'elementor-text-example' ),
+				'label' => esc_html__( 'Image Box', 'elementor' ),
 			]
 		);
 
 		$this->add_control(
 			'image',
 			[
-				'label' => esc_html__( 'Choose Image', 'elementor-text-example' ),
+				'label' => esc_html__( 'Choose Image', 'elementor' ),
 				'type' => Controls_Manager::MEDIA,
 				'dynamic' => [
 					'active' => true,
@@ -78,7 +83,7 @@ class Widget_Text_Example extends Widget_Base {
 		$this->start_controls_section(
 			'section_content',
 			[
-				'label' => esc_html__( 'Content', 'elementor-text-example' ),
+				'label' => esc_html__( 'Content', 'elementor' ),
 				'tab' => Controls_Manager::TAB_CONTENT,
 			]
 		);
@@ -86,16 +91,16 @@ class Widget_Text_Example extends Widget_Base {
 		$this->add_control(
 			'title_text',
 			[
-				'label' => esc_html__( 'Title', 'elementor-text-example' ),
+				'label' => esc_html__( 'Title', 'elementor' ),
 				'type' => Controls_Manager::TEXT,
-				'placeholder' => esc_html__( 'Enter your title', 'elementor-text-example' ),
+				'placeholder' => esc_html__( 'Enter your title', 'elementor' ),
 			]
 		);
 
         $this->add_control(
 			'title_size',
 			[
-				'label' => esc_html__( 'Title HTML Tag', 'elementor-text-example' ),
+				'label' => esc_html__( 'Title HTML Tag', 'elementor' ),
 				'type' => Controls_Manager::SELECT,
 				'options' => [
 					'h1' => 'H1',
@@ -117,7 +122,7 @@ class Widget_Text_Example extends Widget_Base {
         $this->start_controls_section(
 			'section_style',
 			[
-				'label' => esc_html__( 'Style', 'elementor-text-example' ),
+				'label' => esc_html__( 'Style', 'elementor' ),
 				'tab' => Controls_Manager::TAB_STYLE,
 			]
 		);
@@ -125,14 +130,25 @@ class Widget_Text_Example extends Widget_Base {
         $this->add_control(
 			'color',
 			[
-				'label' => esc_html__( 'Color', 'textdomain' ),
+				'label' => esc_html__( 'Color', 'elementor' ),
 				'type' => Controls_Manager::COLOR,
 				'default' => '#f00',
 				'selectors' => [
-					'{{WRAPPER}} h3' => 'color: {{VALUE}}',
+					'{{WRAPPER}} .elementor-text-example-title' => 'color: {{VALUE}}',
 				],
 			]
 		);
+
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_button',
+			[
+				'label' => esc_html__( 'Button', 'elementor' ),
+			]
+		);
+
+		$this->register_button_content_controls();
 
 		$this->end_controls_section();
 
@@ -162,7 +178,7 @@ class Widget_Text_Example extends Widget_Base {
 		}
 
         if ( $has_content ) {
-			$html .= '<div class="elementor-text-example-content">';
+			$html .= '<div class="elementor-widget-text-editor"><div class="elementor-widget-container">';
 
 			if ( ! Utils::is_empty( $settings['title_text'] ) ) {
 				$this->add_render_attribute( 'title_text', 'class', 'elementor-text-example-title' );
@@ -174,65 +190,15 @@ class Widget_Text_Example extends Widget_Base {
 				$html .= sprintf( '<%1$s %2$s>%3$s</%1$s>', Utils::validate_html_tag( $settings['title_size'] ), $this->get_render_attribute_string( 'title_text' ), $title_html );
 			}
 
-            $html .= '</div>';
+            $html .= '</div></div>';
 
         }
 
         $html .= '</div>';
 
+		$this->render_button();
+
         Utils::print_unescaped_internal_string( $html );
 	}
 
-
-	protected function content_template() {
-		?>
-        <#
-		var hasImage = !! settings.image.url;
-		var hasContent = !! settings.title_text;
-
-		if ( ! hasImage && ! hasContent ) {
-			return;
-		}
-
-		var html = '<div class="elementor-text-example-wrapper">';
-
-		if ( hasImage ) {
-			var image = {
-				id: settings.image.id,
-				url: settings.image.url,
-				size: settings.thumbnail_size,
-				dimension: settings.thumbnail_custom_dimension,
-				model: view.getEditModel()
-			};
-
-			var image_url = elementor.imagesManager.getImageUrl( image );
-
-			var imageHtml = '<img src="' + _.escape( image_url ) + '" class="elementor-animation-' + settings.hover_animation + '" />';
-
-			html += '<figure class="elementor-text-example-img">' + imageHtml + '</figure>';
-		}
-
-		if ( hasContent ) {
-			html += '<div class="elementor-text-example-content">';
-
-			if ( settings.title_text ) {
-				var title_html = settings.title_text,
-					titleSizeTag = elementor.helpers.validateHTMLTag( settings.title_size );
-
-				view.addRenderAttribute( 'title_text', 'class', 'elementor-image-box-title' );
-
-				view.addInlineEditingAttributes( 'title_text', 'none' );
-
-				html += '<' + titleSizeTag  + ' ' + view.getRenderAttributeString( 'title_text' ) + '>' + title_html + '</' + titleSizeTag  + '>';
-			}
-
-			html += '</div>';
-		}
-
-		html += '</div>';
-
-		print( html );
-		#>
-		<?php
-	}
 }
